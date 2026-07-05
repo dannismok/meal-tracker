@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { getMealById } from '@/data/meals';
-import { updateMealAction } from './actions';
+import { updateMealAction, addFoodItemAction, removeFoodItemAction, deleteMealAction } from './actions';
 import { EditMealForm } from './edit-meal-form';
 
 export default async function EditMealPage({
@@ -17,5 +17,13 @@ export default async function EditMealPage({
     notFound();
   }
 
-  return <EditMealForm meal={meal} updateMealAction={updateMealAction} />;
+  return (
+    <EditMealForm
+      meal={meal}
+      updateMealAction={updateMealAction}
+      addFoodItemAction={addFoodItemAction}
+      removeFoodItemAction={removeFoodItemAction}
+      deleteMealAction={deleteMealAction}
+    />
+  );
 }

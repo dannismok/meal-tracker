@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { getMealsByUser } from '@/data/meals';
 import { DashboardClient } from './dashboard-client';
+import { deleteMealAction } from './actions';
 
 export default async function DashboardPage({
   searchParams,
@@ -12,5 +13,11 @@ export default async function DashboardPage({
   const selectedDate = params.date ? new Date(params.date) : new Date();
   const meals = await getMealsByUser(userId, selectedDate);
 
-  return <DashboardClient meals={meals} selectedDate={selectedDate} />;
+  return (
+    <DashboardClient
+      meals={meals}
+      selectedDate={selectedDate}
+      deleteMealAction={deleteMealAction}
+    />
+  );
 }

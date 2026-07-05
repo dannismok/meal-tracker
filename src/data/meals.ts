@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { meals } from '@/db/schema';
+import { meals, foodItems, mealFoods } from '@/db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export type CreateMealInput = {
@@ -41,6 +41,7 @@ export async function getMealsByUser(userId: string, date?: Date) {
     date: meal.date,
     foodItems: meal.mealFoods.map((mf) => ({
       id: mf.foodItem.id,
+      mealFoodId: mf.id,
       name: mf.foodItem.name,
       calories: mf.foodItem.calories,
       servings: mf.servings,
@@ -65,6 +66,47 @@ export async function updateMeal(id: string, values: UpdateMealInput, userId: st
   return meal;
 }
 
+export async function addFoodToMeal(
+  mealId: string,
+  data: { name: string; calories: number; servings: string },
+  userId: string,
+) {
+  const meal = await db.query.meals.findFirst({
+    where: and(eq(meals.id, mealId), eq(meals.userId, userId)),
+  });
+  if (!meal) throw new Error('Meal not found');
+
+  const [foodItem] = await db
+    .insert(foodItems)
+    .values({ name: data.name, calories: data.calories, userId })
+    .returning();
+
+  await db.insert(mealFoods).values({
+    mealId,
+    foodItemId: foodItem.id,
+    servings: data.servings,
+  });
+}
+
+export async function removeFoodFromMeal(mealFoodId: string, mealId: string, userId: string) {
+  const meal = await db.query.meals.findFirst({
+    where: and(eq(meals.id, mealId), eq(meals.userId, userId)),
+  });
+  if (!meal) throw new Error('Meal not found');
+
+  await db.delete(mealFoods).where(eq(mealFoods.id, mealFoodId));
+}
+
+export async function deleteMeal(id: string, userId: string) {
+  const meal = await db.query.meals.findFirst({
+    where: and(eq(meals.id, id), eq(meals.userId, userId)),
+  });
+  if (!meal) throw new Error('Meal not found');
+
+  await db.delete(mealFoods).where(eq(mealFoods.mealId, id));
+  await db.delete(meals).where(eq(meals.id, id));
+}
+
 export async function getMealById(id: string, userId: string) {
   const meal = await db.query.meals.findFirst({
     where: and(eq(meals.id, id), eq(meals.userId, userId)),
@@ -83,6 +125,7 @@ export async function getMealById(id: string, userId: string) {
     date: meal.date,
     foodItems: meal.mealFoods.map((mf) => ({
       id: mf.foodItem.id,
+      mealFoodId: mf.id,
       name: mf.foodItem.name,
       calories: mf.foodItem.calories,
       servings: mf.servings,

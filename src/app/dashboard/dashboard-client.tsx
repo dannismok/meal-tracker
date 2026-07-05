@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Plus } from 'lucide-react';
+import { CalendarIcon, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { MealWithFoodItems } from '@/data/meals';
+import type { DeleteMealActionInput } from './actions';
 
 function totalCalories(items: { calories: number; servings: string }[]): number {
   return items.reduce((sum, f) => sum + f.calories * Number(f.servings), 0);
@@ -16,18 +17,29 @@ function totalCalories(items: { calories: number; servings: string }[]): number 
 export function DashboardClient({
   meals,
   selectedDate,
+  deleteMealAction,
 }: {
   meals: MealWithFoodItems[];
   selectedDate: Date;
+  deleteMealAction: (values: DeleteMealActionInput) => Promise<void>;
 }) {
   const router = useRouter();
   const [date, setDate] = useState<Date>(selectedDate);
+  const [deletePending, setDeletePending] = useState<string | null>(null);
 
   const handleDateChange = (d: Date | undefined) => {
     if (!d) return;
     setDate(d);
     router.push(`/dashboard?date=${format(d, 'yyyy-MM-dd')}`);
   };
+
+  async function handleDeleteMeal(mealId: string) {
+    if (!window.confirm('Are you sure you want to delete this meal? This action cannot be undone.')) {
+      return;
+    }
+    setDeletePending(mealId);
+    await deleteMealAction({ id: mealId });
+  }
 
   const total = meals.reduce((sum, m) => sum + totalCalories(m.foodItems), 0);
 
@@ -73,9 +85,28 @@ export function DashboardClient({
           >
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-lg font-semibold">{meal.name}</h2>
-              <span className="text-sm text-muted-foreground">
-                {format(meal.date, 'p')}
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-muted-foreground">
+                  {format(meal.date, 'p')}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push(`/dashboard/meals/${meal.id}`)}
+                  aria-label={`Edit ${meal.name}`}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={deletePending === meal.id}
+                  onClick={() => handleDeleteMeal(meal.id)}
+                  aria-label={`Delete ${meal.name}`}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
             </div>
             <ul className="space-y-1">
               {meal.foodItems.map((food) => (

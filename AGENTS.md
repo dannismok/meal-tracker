@@ -6,8 +6,10 @@
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS 4
 - **UI:** shadcn/ui only — see [docs/ui.md](docs/ui.md)
+- **Data fetching:** Server Components only — see [docs/data-fetching.md](docs/data-fetching.md)
+- **Data mutations:** Server Actions only — see [docs/data-mutations.md](docs/data-mutations.md)
+- **Auth:** Clerk — see [docs/auth.md](docs/auth.md)
 - **Docs:** All project documentation lives in [docs/](docs/)
-- **Auth:** Clerk
 - **Database:** PostgreSQL (Neon) via Drizzle ORM
 - **Package manager:** npm
 
@@ -24,9 +26,9 @@
 
 - **Path alias:** `@/` maps to `src/`
 - **Components:** shadcn/ui components go in `src/components/ui/` via the CLI (`npx shadcn@latest add <name>`). Never hand-write UI components.
-- **Server actions:** Place in a `actions.ts` file co-located with the page route.
-- **Database:** Schema in `src/db/schema.ts`, queries use Drizzle ORM. Use server actions or Route Handlers — never expose db queries to the client.
-- **Auth:** Clerk middleware protects all routes except `/sign-in` and `/sign-up`.
+- **Server actions:** Place in a `actions.ts` file co-located with the page route. See [docs/data-mutations.md](docs/data-mutations.md).
+- **Database:** Schema in `src/db/schema.ts`, queries use Drizzle ORM. See [docs/data-fetching.md](docs/data-fetching.md).
+- **Auth:** Clerk middleware protects all routes except `/sign-in` and `/sign-up`. See [docs/auth.md](docs/auth.md).
 
 ## Before Submitting
 
